@@ -1,0 +1,30 @@
+modifiers:
+  - !EpochRangeModifier
+    start_epoch: 0
+    end_epoch: 10
+
+training_modifiers:
+  - !LearningRateFunctionModifier
+    start_epoch: 0.0
+    end_epoch: 10.0
+    lr_func: cyclic_linear
+    cycle_epochs: 2.0
+    init_lr: 5e-5
+    final_lr: 5e-6
+
+  - !GMPruningModifier
+    params: [
+      "re:encoder.layer.*.attention.self.query.weight",
+      "re:encoder.layer.*.attention.self.key.weight",
+      "re:encoder.layer.*.attention.self.value.weight",
+      "re:encoder.layer.*.attention.output.dense.weight",
+      "re:encoder.layer.*.intermediate.dense.weight",
+      "re:encoder.layer.*.output.dense.weight",
+    ]
+    init_sparsity: 0.5
+    final_sparsity: 0.95
+    start_epoch: 0
+    end_epoch: 10
+    update_frequency: 0.1
+    mask_type: unstructured
+

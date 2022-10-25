@@ -1,0 +1,19 @@
+modifiers:
+  - !EpochRangeModifier
+    start_epoch: 0
+    end_epoch: 10
+
+training_modifiers:
+
+  - !LearningRateFunctionModifier
+    start_epoch: 0.0
+    end_epoch: 10.0
+    lr_func: linear
+    init_lr: 5e-5
+    final_lr: 0
+
+constant_modifiers:
+  - !ConstantPruningModifier
+      start_epoch: 0.0
+      params: __ALL_PRUNABLE__
+
