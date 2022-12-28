@@ -29,7 +29,7 @@ from transformers import (
     get_scheduler,
 )
 import numpy as np
-from sparseml.pytorch.optim import ScheduledModifierManager
+from sparseml.pytorch.optim import ScheduledModifierManager, ScheduledOptimizer
 from sparseml.pytorch.utils import export_onnx
 from sparseml.transformers.sparsification import Trainer
 logger = logging.getLogger(__name__)
@@ -137,6 +137,11 @@ def parse_args():
         type=float,
         default=1.0,
         help="control the importance of margin ranking loss between negative and positive variants of the query",
+    )
+    parser.add_argument(
+        "--mse_loss",
+        action="store_true",
+        help="If passed MSE loss will be used on cosine distance"
     )
     parser.add_argument(
         "--max_length",
@@ -261,9 +266,11 @@ def parse_args():
     return args
 
 def struct_prune(model, num_layers_to_keep):
-    oldModuleList = model.encoder.layer
+    oldModuleList = model.encoder.layer #s
     newModuleList = nn.ModuleList()
-    layers = {1:[0], 2:[0,11],3:[0,5,11],6:[0,2,4,6,8,10], 9:[0,1,3,4,5,6,7,9,10]}
+    layers = {1:[0], 2:[0,11],3:[0,5,11],6:[0,2,4,6,8,11], 9:[0,1,3,4,5,6,7,9,11]}
+    layers = {1:[0], 2:[0,5],3:[0,2,5]}
+    #layers = {1:[0], 2:[0,2]}
     for i in range(0, num_layers_to_keep):
         newModuleList.append(oldModuleList[layers[num_layers_to_keep][i]])
     copyOfModel = copy.deepcopy(model)
@@ -399,6 +406,7 @@ def main():
     completed_steps = 0
     cosine_embedding_loss_positive = torch.nn.CosineEmbeddingLoss(margin=0)
     kl_loss = nn.KLDivLoss(reduction="sum")
+    mse_loss_fn = nn.MSELoss()
     cosine_embedding_loss_negative = torch.nn.CosineEmbeddingLoss(margin=args.cosine_margin)
     margin_ranking_loss = nn.MarginRankingLoss()
     cos_sim = nn.CosineSimilarity(dim=1, eps=1e-6)
@@ -441,6 +449,11 @@ def main():
                             inputs = F.log_softmax(negative/ args.temperature, dim=-1)
                             targets = F.softmax(anchored_negative/ args.temperature, dim=-1)
                             loss_neg = kl_loss(inputs, targets) * (args.temperature ** 2) / (negative.numel() / negative.shape[-1])
+                        elif args.mse_loss:
+                            candidates = torch.cosine_similarity(positive, anchored_positive)
+                            loss_pos = mse_loss_fn(candidates,  torch.zeros(candidates.shape).to('cuda'))
+                            candidates = torch.cosine_similarity(negative, anchored_negative)
+                            loss_neg = mse_loss_fn(candidates,  torch.zeros(candidates.shape).to('cuda'))
                         else:
                             loss_pos = cosine_embedding_loss_positive(positive, anchored_positive,target_positive) * args.temperature
                             loss_neg = cosine_embedding_loss_negative(negative, anchored_negative,target_negative) * args.temperature
@@ -468,6 +481,11 @@ def main():
                         inputs = F.log_softmax(negative/ args.temperature, dim=-1)
                         targets = F.softmax(anchored_negative/ args.temperature, dim=-1)
                         loss_neg = kl_loss(inputs, targets) * (args.temperature ** 2) / (negative.numel() / negative.shape[-1])
+                    elif args.mse_loss:
+                        candidates = torch.cosine_similarity(positive, anchored_positive)
+                        loss_pos = mse_loss_fn(candidates,  torch.zeros(candidates.shape).to('cuda'))
+                        candidates = torch.cosine_similarity(negative, anchored_negative)
+                        loss_neg = mse_loss_fn(candidates,  torch.zeros(candidates.shape).to('cuda'))
                     else:
                         loss_pos = cosine_embedding_loss_positive(positive, anchored_positive,target_positive) * args.temperature
                         loss_neg = cosine_embedding_loss_negative(negative, anchored_negative,target_negative) * args.temperature
@@ -543,7 +561,7 @@ def main():
     )
     inputs = {'input_ids':inputs['input_ids'].to(device), 'attention_mask':inputs['attention_mask'].to(device)}
     onnx_file_path = os.path.join(args.output_dir, args.onnx_name)
-    if isinstance(model,type(nn.DataParallel(None))):
+    if args.dp:
         model.module.save_pretrained(args.output_dir)
         trainer = Trainer(
             model=target_model,

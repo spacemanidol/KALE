@@ -1,0 +1,37 @@
+modifiers:
+  - !EpochRangeModifier
+    start_epoch: 0
+    end_epoch: 10
+
+training_modifiers:
+
+  - !LearningRateFunctionModifier
+    start_epoch: 0.0
+    end_epoch: 10.0
+    lr_func: linear
+    init_lr: 5e-5
+    final_lr: 0
+
+constant_modifiers:
+  - !ConstantPruningModifier
+      start_epoch: 0.0
+      params: __ALL_PRUNABLE__
+
+distillation_modifiers:
+ - !QuantizationModifier
+        activation_bits: 8
+        disable_quantization_observer_epoch: 80.0
+        exclude_batchnorm: True
+        exclude_module_types: ['LayerNorm', 'Tanh', 'BatchNorm1d', 'BatchNorm2d', 'BatchNorm3d']
+        freeze_bn_stats_epoch: 90.0
+        model_fuse_fn_name: conv_bn_relus
+        quantize_conv_activations: True
+        quantize_embeddings: 1   
+        quantize_linear_activations: 0
+        reduce_range: False
+        start_epoch: 0.0
+        submodules: ['encoder', 'embeddings']
+        tensorrt: False
+        weight_bits: 8
+
+

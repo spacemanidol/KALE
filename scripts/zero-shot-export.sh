@@ -1,7 +1,7 @@
 python scripts/ca-prune.py \
 --max_length 32 \
 --model_name_or_path $1 \
---num_train_epochs 1\
+--num_train_epochs 1 \
 --train_file datasets/nq/query_align_train.jsonl \
 --dev_file datasets/nq/query_align_dev.jsonl \
 --do_eval \

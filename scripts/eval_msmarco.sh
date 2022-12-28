@@ -1,7 +1,6 @@
 python -m tevatron.driver.encode \
   --output_dir=temp \
   --model_name_or_path $1 \
-  --fp16 \
   --per_device_eval_batch_size 1 \
   --dataset_name Tevatron/msmarco-passage/dev \
   --encoded_save_path $1/query_embed.pkl \
@@ -23,5 +22,6 @@ python -m tevatron.utils.format.convert_result_to_marco \
               --input $1/run.txt \
               --output $1/run.marco
 
-python -m pyserini.eval.msmarco_passage_eval msmarco-passage-dev-subset $1/run.marco
-python -m pyserini.eval.msmarco_passage_eval msmarco-passage-dev-subset $1/run.marco > $1/run.metrics
+python scripts/msmarco_passage_eval.py scripts/qrels.dev.tsv $1/run.marco > $1/run.metrics 
+
+python scripts/msmarco_passage_eval.py scripts/qrels.dev.tsv $1/run.marco

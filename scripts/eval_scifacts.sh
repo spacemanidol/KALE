@@ -22,5 +22,15 @@ python -m tevatron.utils.format.convert_result_to_trec \
               --input $1/run.txt \
               --output $1/run.trec
 
-python -m pyserini.eval.trec_eval -c -mrecip_rank -mndcg_cut.10 datasets/scifact/dev_qrels.txt run.scifact.dev.trec
-
+python -m pyserini.eval.trec_eval -c -mrecip_rank -mndcg_cut.10 -mrecall.10 datasets/scifact/dev_qrels.txt $1/run.trec > $1/run.metrics
+python -m pyserini.eval.trec_eval -c -mrecall.20  datasets/scifact/dev_qrels.txt $1/run.trec >> $1/run.metrics
+python -m pyserini.eval.trec_eval -c -mrecall.40   datasets/scifact/dev_qrels.txt $1/run.trec >> $1/run.metrics
+python -m pyserini.eval.trec_eval -c -mrecall.60  datasets/scifact/dev_qrels.txt $1/run.trec >> $1/run.metrics
+python -m pyserini.eval.trec_eval -c -mrecall.80  datasets/scifact/dev_qrels.txt $1/run.trec >> $1/run.metrics
+python -m pyserini.eval.trec_eval -c -mrecall.100  datasets/scifact/dev_qrels.txt $1/run.trec >> $1/run.metrics
+python -m pyserini.eval.trec_eval -c -mrecall.120  datasets/scifact/dev_qrels.txt $1/run.trec >> $1/run.metrics
+python -m pyserini.eval.trec_eval -c -mrecall.140 datasets/scifact/dev_qrels.txt $1/run.trec >> $1/run.metrics
+python -m pyserini.eval.trec_eval -c -mrecall.160 datasets/scifact/dev_qrels.txt $1/run.trec >> $1/run.metrics
+python -m pyserini.eval.trec_eval -c -mrecall.180  datasets/scifact/dev_qrels.txt $1/run.trec >> $1/run.metrics
+python -m pyserini.eval.trec_eval -c -mrecall.200  datasets/scifact/dev_qrels.txt $1/run.trec >> $1/run.metrics
+cat $1/run.metrics

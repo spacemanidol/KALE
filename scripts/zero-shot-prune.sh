@@ -1,0 +1,15 @@
+python scripts/ca-prune.py --max_length 32 \
+--model_name_or_path $1 \
+--max_train_steps 1 \
+--learning_rate 1e-10 \
+--num_train_epochs 1 \
+--train_file datasets/nq/query_align_train.jsonl \
+--dev_file datasets/nq/query_align_dev.jsonl \
+--do_train \
+--recipe recipes/gmpquant-one.yaml \
+--output_dir $2 \
+--temperature 10 \
+--layers $3 \
+--batch_size 64 \
+--onnx_name query-encoder.onnx \
+--kldiv

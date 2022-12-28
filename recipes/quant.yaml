@@ -21,7 +21,6 @@ distillation_modifiers:
  - !QuantizationModifier
         activation_bits: 8
         disable_quantization_observer_epoch: 8.0
-        end_epoch: -1.0
         exclude_batchnorm: True
         exclude_module_types: ['LayerNorm', 'Tanh', 'BatchNorm1d', 'BatchNorm2d', 'BatchNorm3d']
         freeze_bn_stats_epoch: 10.0

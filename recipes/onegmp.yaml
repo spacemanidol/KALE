@@ -1,0 +1,20 @@
+modifiers:
+  - !EpochRangeModifier
+    start_epoch: 0
+    end_epoch: 1
+
+  - !GMPruningModifier
+    params: [
+      "re:encoder.layer.*.attention.self.query.weight",
+      "re:encoder.layer.*.attention.self.key.weight",
+      "re:encoder.layer.*.attention.self.value.weight",
+      "re:encoder.layer.*.attention.output.dense.weight",
+      "re:encoder.layer.*.intermediate.dense.weight",
+      "re:encoder.layer.*.output.dense.weight",
+    ]
+    init_sparsity: 0.80
+    final_sparsity: 0.80
+    start_epoch: 0
+    end_epoch: 1
+    update_frequency: 0.01
+    mask_type: [1,4]
